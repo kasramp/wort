@@ -23,9 +23,10 @@ order: the `WORT_DATA` directory, the program's own directory, then
 
 ## Building the data
 
-The data build step runs on a modern machine (Python 3, no extra packages). The
-raw snapshots it reads are listed with their checksums in `data/SOURCES`; they
-go in `data/raw/`.
+The data build step runs on a modern machine (Python 3, no extra packages). It
+reads the newest raw snapshots in `data/raw/`, named `<source>-<date>.<ext>`.
+All snapshots used so far are listed with their checksums in `data/SOURCES`
+and kept in the `data-snapshots` release.
 
 ```sh
 make data        # writes build/data/wort.idx, wort-en.idx and wort.dat (~2 min, ~130 MB)
@@ -119,12 +120,14 @@ Every pull request and push to `main` builds wort on Linux (strict C89,
 warnings are errors), macOS, FreeBSD, OpenBSD and Windows
 (`.github/workflows/build.yml`).
 
-Releases are made by hand: **Actions → release → Run workflow**, with a
-version such as `v0.1.0`. The workflow downloads the raw snapshots from the
-`data-snapshots` release, checks them against `data/SOURCES`, builds the
-data and `wort.exe`, and publishes a Windows zip and a Unix tarball. A new
-data snapshot means: add the dated files to the `data-snapshots` release,
-then update `data/SOURCES` and the `data` target in the Makefile.
+Releases are made by hand: **Actions → release → Run workflow** on `main`,
+with a version such as `v0.1.0`. The workflow downloads today's data from
+kaikki.org and OpenThesaurus (`tools/snapshot.sh`). If a source can't be
+downloaded, it uses the newest snapshot kept in the `data-snapshots` release,
+checked against `data/SOURCES`. It then builds the data and `wort.exe`, adds
+new raw files to `data-snapshots`, commits their checksums to `data/SOURCES`,
+and publishes a Windows zip and a Unix tarball from that commit. The snapshot
+dates show on wort's F1 page.
 
 ## License
 

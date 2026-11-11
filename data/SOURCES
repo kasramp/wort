@@ -1,4 +1,5 @@
-# Raw data snapshots used by the build. Files live in data/raw/ (not in git).
+# Raw data snapshots used by the build. Files live in data/raw/ (not in git) and in the
+# GitHub release "data-snapshots". The release workflow appends new downloads here.
 # file  date  sha256  source
 dewiktionary-2026-11-01.jsonl.gz  2026-11-01  3405adc801ae68406304f9317421d3df6bca74ffcaa041a88afc44c5a5debcbe  https://kaikki.org/dewiktionary/raw-wiktextract-data.jsonl.gz
 openthesaurus-2026-11-09.zip  2026-11-09  d7b7c2269204d1682499be86cd204fd4ef26beb969e8700ad9d2b5dbb606d242  https://www.openthesaurus.de/export/OpenThesaurus-Textversion.zip

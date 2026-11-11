@@ -19,10 +19,10 @@ wort: src/wort.c
 	echo "$(CC) $(CFLAGS) $$flags -o wort src/wort.c $$libs"; \
 	$(CC) $(CFLAGS) $$flags -o wort src/wort.c $$libs
 
-# Needs the raw snapshots listed in data/SOURCES in data/raw/
+# Builds from the newest raw snapshots in data/raw/ (dated names, see data/SOURCES)
 data:
-	python3 -I tools/build-db.py data/raw/dewiktionary-2026-11-01.jsonl.gz \
-	    data/raw/openthesaurus-2026-11-09.zip build/data
+	python3 -I tools/build-db.py `ls data/raw/dewiktionary-*.jsonl.gz | tail -1` \
+	    `ls data/raw/openthesaurus-*.zip | tail -1` build/data
 
 # Windows .exe (Win98-11), cross-built with OpenWatcom v2; source its owsetenv.sh first
 P = ../../third_party/PDCurses-3.9

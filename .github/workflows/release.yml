@@ -1,6 +1,7 @@
-# Manual release: Actions -> release -> Run workflow, enter a version like v0.1.0.
-# Builds the data from the raw snapshots kept in the "data-snapshots" release
-# (checked against data/SOURCES), builds wort.exe, and publishes:
+# Manual release: Actions -> release -> Run workflow (on main), enter a version like v0.1.0.
+# Downloads today's raw data from upstream (falls back to the newest snapshot in the
+# "data-snapshots" release), builds the data and wort.exe, keeps new raw files in
+# "data-snapshots", commits their checksums to data/SOURCES, tags that commit and publishes:
 #   wort-<version>-windows.zip   wort.exe + data, unzip and run
 #   wort-<version>-unix.tar.gz   source + built data: make && make install
 name: release
@@ -17,6 +18,7 @@ permissions:
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -24,13 +26,21 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Get raw snapshots and verify their checksums
-        run: |
-          mkdir -p data/raw
-          gh release download data-snapshots --dir data/raw
-          cd data/raw && grep -v '^#' ../SOURCES | awk '{print $3 "  " $1}' | sha256sum -c -
+      - name: Raw data (upstream, or the newest kept snapshot)
+        run: tools/snapshot.sh
 
       - run: make data
+
+      - name: Keep new raw files and record them in data/SOURCES
+        run: |
+          new=$(git diff -U0 data/SOURCES | grep '^+[^+]' | cut -c2- | awk '{print "data/raw/" $1}')
+          if [ -n "$new" ]; then
+            gh release upload data-snapshots $new --clobber
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: snapshots for $V" data/SOURCES
+            git push origin HEAD:main
+          fi
 
       - uses: open-watcom/setup-watcom@v1
         with:
@@ -52,8 +62,10 @@ jobs:
       - name: Publish
         run: |
           stamp=$(head -1 build/data/wort.dat | cut -c2-)
+          files=$(for f in data/raw/*; do grep "^${f#data/raw/} " data/SOURCES | awk '{print "- `" $1 "` sha256 `" $3 "`"}'; done)
           cat > notes.md <<NOTES
-          Data: $stamp.
+          Data: $stamp. Raw files (release \`data-snapshots\`):
+          $files
 
           - **Windows 98 to 11**: unzip \`wort-$V-windows.zip\`, run \`wort\` in a Command Prompt.
           - **Linux, BSD, macOS**: \`tar xzf wort-$V-unix.tar.gz\`, then \`make && sudo make install\`.
@@ -61,4 +73,4 @@ jobs:
           Code: GPL-3.0-or-later. Data: German Wiktionary (CC BY-SA 4.0, via wiktextract/kaikki.org)
           and OpenThesaurus (LGPL 2.1 or CC BY-SA 4.0).
           NOTES
-          gh release create "$V" dist/* --target "$GITHUB_SHA" --title "wort $V" --notes-file notes.md
+          gh release create "$V" dist/* --target "$(git rev-parse HEAD)" --title "wort $V" --notes-file notes.md
