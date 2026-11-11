@@ -3,3 +3,5 @@
 # file  date  sha256  source
 dewiktionary-2026-11-01.jsonl.gz  2026-11-01  3405adc801ae68406304f9317421d3df6bca74ffcaa041a88afc44c5a5debcbe  https://kaikki.org/dewiktionary/raw-wiktextract-data.jsonl.gz
 openthesaurus-2026-11-09.zip  2026-11-09  d7b7c2269204d1682499be86cd204fd4ef26beb969e8700ad9d2b5dbb606d242  https://www.openthesaurus.de/export/OpenThesaurus-Textversion.zip
+dewiktionary-2026-11-11.jsonl.gz  2026-11-11  3405adc801ae68406304f9317421d3df6bca74ffcaa041a88afc44c5a5debcbe  https://kaikki.org/dewiktionary/raw-wiktextract-data.jsonl.gz
+openthesaurus-2026-11-11.zip  2026-11-11  d96e242d59af50d61873533820c380795a347b3cf9e656c8c73669dd27f4bfa6  https://www.openthesaurus.de/export/OpenThesaurus-Textversion.zip
