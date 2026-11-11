@@ -1,137 +1,223 @@
 # wort
 
-An offline German–German dictionary for the terminal. Its data comes from the
-German Wiktionary and OpenThesaurus.
+An offline German–German dictionary for the terminal, built from the German
+Wiktionary and OpenThesaurus. One small C program runs on Windows 98 and
+Mac OS X Panther all the way up to Windows 11, current macOS, FreeBSD,
+OpenBSD and Linux. It needs no internet connection, no installer and no
+runtime.
 
-Status: first draft.
+![wort searching for "haus"](docs/screenshot.png)
+
+## Features
+
+- About 186,000 headwords: meanings with one example each, IPA, hyphenation,
+  synonyms (Wiktionary and OpenThesaurus merged), antonyms and English
+  translations
+- Inflected forms lead to the base form: *ging* finds *gehen*, *Häuser* finds
+  *Haus*
+- No umlaut keys? Type `ae`, `oe`, `ue` and `ss`: `haeuser` finds *Häuser*.
+  Accents can be left out too
+- English to German: F2 in the TUI, or `wort -e house`
+- Full-screen TUI, and a plain mode for scripts (`wort Haus`)
+- Light on old hardware: lookups are binary searches in plain text files, so
+  wort needs little memory and stays quick on the Windows 98 and Panther
+  machines it was tested on
+
+## Runs everywhere
+
+wort is written in plain C89 against curses: ncurses on Unix and macOS, and
+PDCurses compiled into the program on Windows. The same source builds with
+gcc 3.3 on a 2003 PowerPC Mac and with today's clang. One `.exe` runs on
+every Windows from 98 to 11. On Unix, `make` detects the OS by itself, with
+GNU make or BSD make.
+
+Text is shown in whatever the system can display: UTF-8 on modern systems,
+Latin-1 on Panther and Tiger, the DOS code page in the Windows console.
+Umlauts and ß work everywhere. Characters a system lacks are replaced with
+plain ones (`„“` become `"`, IPA letters become `?`).
+
+### Tested systems
+
+Each of these passed the full checklist in [`checklists.txt`](checklists.txt)
+on real hardware, not in emulators:
+
+| System | Notes |
+|---|---|
+| Windows 98 | Run from a USB stick and from the hard disk |
+| Windows XP | |
+| Windows 11 | |
+| Mac OS X 10.3.9 Panther (PowerPC) | Latin-1 build; F1/F2 don't work in its Terminal, see [Notes](#notes) |
+| Mac OS X 10.5.8 Leopard | F1/F2 don't work in its Terminal |
+| macOS 10.15 Catalina | |
+| FreeBSD 15.1 | |
+| OpenBSD 8 | |
+| Linux (Arch) | |
+
+On every pull request, CI also builds wort on Linux, macOS, FreeBSD, OpenBSD
+and Windows.
+
+Untested but expected to work: Windows 2000, Vista, 7, 8 and 10; Mac OS X 10.4
+Tiger (same setup as Panther), 10.6 and later; macOS 11 and later on Intel and
+Apple Silicon; other Linux distributions.
+
+## Installation
+
+### From a release
+
+Download the archive for your system from the
+[Releases](https://github.com/kasramp/wort/releases) page.
+
+**Windows 98 to 11:** unzip `wort-<version>-windows.zip` and run `wort` in a
+Command Prompt from that folder. Nothing to install.
+
+**Linux, FreeBSD, OpenBSD, macOS:** the archive holds the source and the
+ready-built data. You need a C compiler and curses; on macOS, the Xcode
+command line tools; on Debian and Ubuntu, `libncurses-dev`.
+
+```
+$ tar xzf wort-<version>-unix.tar.gz
+$ cd wort-<version>-unix
+$ make
+$ sudo make install
+```
+
+This installs `wort` to `/usr/local/bin`, its data to
+`/usr/local/share/wort` and the man page. `make uninstall` removes them again.
+For another location, pass the same `PREFIX` to both commands
+(`make PREFIX=$HOME/.local` and `make install PREFIX=$HOME/.local`), because
+the data path is compiled into the program.
+
+### From source
+
+Building the data needs Python 3 (standard library only) and about 2 minutes:
+
+```
+$ git clone https://github.com/kasramp/wort
+$ cd wort
+$ tools/snapshot.sh      # downloads today's Wiktionary extract and OpenThesaurus (~320 MB)
+$ make data              # builds build/data/ (~130 MB)
+$ make
+$ sudo make install
+```
+
+`tools/snapshot.sh` adds each download to `data/SOURCES`. If kaikki.org or
+OpenThesaurus is down, it falls back to the snapshots kept in the
+[`data-snapshots`](https://github.com/kasramp/wort/releases/tag/data-snapshots)
+release (this needs the GitHub CLI, `gh`).
+
+wort also runs without being installed: it finds its data next to the
+program, or in the directory named by `WORT_DATA`.
 
 ## Usage
 
 ```
-wort            start the TUI: type to search, Up/Down picks a word,
-                PgUp/PgDn scrolls the entry, F1 shows info,
-                F2 switches the search between German and English, Esc quits
-wort Häuser     print the entry and exit (exit status 1 if not found)
-wort -e house   search an English word, show the German entries
+wort              full-screen dictionary
+wort Haus         print the entry for Haus and exit
+wort -e house     look up an English word, print the German entries
 ```
 
-Without umlauts on the keyboard, type ae/oe/ue/ss: `haeuser` finds *Häuser*.
+In the full-screen dictionary:
 
-wort looks for `wort.idx`, `wort.dat` and the optional `wort-en.idx` in this
-order: the `WORT_DATA` directory, the program's own directory, then
-`PREFIX/share/wort` (default `/usr/local/share/wort`).
+| Key | Action |
+|---|---|
+| typing | Search as you type |
+| Up / Down | Pick a word from the list |
+| Page Up / Page Down | Scroll the entry |
+| F1 | Info page: data sources, licences, snapshot dates |
+| F2 | Switch the search between German and English |
+| Backspace | Delete the last character |
+| Esc | Quit |
 
-## Building the data
+Plain mode exits with status 0 when it finds the word, 1 when it doesn't
+(it then lists similar words), and 2 when the data files are missing. See
+also `man wort`.
 
-The data build step runs on a modern machine (Python 3, no extra packages). It
-reads the newest raw snapshots in `data/raw/`, named `<source>-<date>.<ext>`.
-All snapshots used so far are listed with their checksums in `data/SOURCES`
-and kept in the `data-snapshots` release.
+## Notes
 
-```sh
-make data        # writes build/data/wort.idx, wort-en.idx and wort.dat (~2 min, ~130 MB)
-```
+### Mac OS X 10.3 and 10.4
 
-## Building the program
+The ncurses in Panther and Tiger counts UTF-8 bytes as screen columns, so
+umlauts would leave stray characters behind. The Makefile therefore builds a
+Latin-1 version on these systems. Set the Terminal to match: **Window Settings
+→ Display → Character Set Encoding → Western (ISO Latin 1)**.
 
-wort is plain C89 and uses curses. On Linux, FreeBSD, OpenBSD and macOS
-(including Panther and Tiger) just run:
+### macOS Terminal
 
-```sh
-make clean && make
-sudo make install    # wort, its data and the man page under /usr/local
-```
-
-`make install` takes the data from `build/data/` (see above; the release
-archives already contain it). It honours `PREFIX` and `DESTDIR`; give the
-same `PREFIX` to `make` too, because the data path is compiled in.
-`make uninstall` removes everything again.
-
-The Makefile detects the OS and picks the curses library (`-lncursesw`,
-`-lcurses` on OpenBSD, `-lncurses` on macOS) and, on Panther/Tiger, the
-Latin-1 build (`-DWORT_LATIN1`, see below). Windows is cross-built on Linux,
-see below.
-
-`cursetest/` is a small program that checks text output and keys. Its
-Makefile does not detect the OS: use `make` on Linux/FreeBSD,
-`make LIBS=-lcurses` on OpenBSD, `make LIBS=-lncurses` on macOS.
-
-### Gotcha: Panther and Tiger need Latin-1
-
-The ncurses that ships with OS X 10.3 and 10.4 has no wide-character support.
-It counts UTF-8 bytes as screen columns. An umlaut is 2 bytes but takes only
-1 column, so redraws leave leftover characters on screen.
-
-Fix:
-1. Build with `-DWORT_LATIN1`.
-2. In Terminal, open **Window Settings → Display → Character Set Encoding**
-   and choose **Western (ISO Latin 1)**.
-
-Umlauts and ß then display correctly. Characters that Latin-1 doesn't have
-are replaced: „“ ‚‘ become `"` `'`, – and — become `-`, … becomes `...`, and
-IPA symbols become `?`.
-
-In the macOS Terminal, Page Up/Down scroll the Terminal window. To scroll the
-entry in wort, use Shift+Page Up/Down (on laptops: fn+Shift+↑/↓).
-
-Known limit in the Terminal of OS X 10.3 to 10.5: F1 and F2 don't work
-(on Panther they quit wort), because Terminal sends key codes the system
-doesn't know. Leopard 10.5.8 is tested and otherwise fine.
-
-Tested on Panther 10.3.9 (PPC). Tiger is untested but ships the same kind of
-ncurses.
+- Page Up/Down scroll the Terminal window itself. Use **Shift+Page Up/Down**
+  (on laptops **fn+Shift+↑/↓**) to scroll the entry in wort.
+- In the Terminal of OS X 10.3 to 10.5, F1 and F2 don't work (on Panther they
+  quit wort), because that Terminal sends key codes the system doesn't
+  recognise.
 
 ### Windows
 
-Windows builds are cross-compiled on Linux with OpenWatcom v2 (Arch: AUR
-package `openwatcom-v2`). PDCurses 3.9 is compiled into the program, so the
-`.exe` needs no extra DLLs and runs on Windows 98 through 11.
-
-```sh
-. /opt/watcom/owsetenv.sh
-make win32           # writes build/win32/wort.exe
-```
-
-Copy `wort.exe` and the three data files into one folder.
-
-Gotchas:
-- PDCurses is the narrow (non-Unicode) build, because the Unicode build does
-  not run on Windows 9x. The console therefore expects the DOS code page
-  (CP437/850), and wort converts text to it. The German letters sit at the
-  same positions in both code pages. Quotes, dashes and IPA are replaced the
-  same way as on Panther.
-- On Windows 9x, run wort in a Command Prompt window. It is a Win32 program,
-  so it does not run in real "MS-DOS mode".
-- Do not use PDCurses' `Makefile.wcc` on Linux: OpenWatcom on Linux writes
-  `.o` files, not the `.obj` files that makefile expects.
-- Do not define `HAVE_NO_INFOEX`. It clashes with OpenWatcom's headers and
-  isn't needed: PDCurses already looks up the newer console functions at run
-  time.
+- Run wort in a Command Prompt window. On Windows 98 it does not run in real
+  "MS-DOS mode", because it is a Win32 program.
+- The console uses the DOS code page, so quotes, dashes and IPA letters are
+  replaced with plain characters.
 
 ### Text consoles
 
-On the plain text consoles of the BSDs and Linux (outside X), some characters
-may show as boxes or not at all, depending on the console font. Desktop
-terminal emulators show everything.
+On the plain text consoles of Linux and the BSDs (outside X), some characters
+may show as boxes, depending on the console font. Terminal emulators show
+everything.
 
-## CI and releases
+## Development
 
-Every pull request and push to `main` builds wort on Linux (strict C89,
-warnings are errors), macOS, FreeBSD, OpenBSD and Windows
-(`.github/workflows/build.yml`).
+### Building for Windows
 
-Releases are made by hand: **Actions → release → Run workflow** on `main`,
-with a version such as `v0.1.0`. The workflow downloads today's data from
-kaikki.org and OpenThesaurus (`tools/snapshot.sh`). If a source can't be
-downloaded, it uses the newest snapshot kept in the `data-snapshots` release,
-checked against `data/SOURCES`. It then builds the data and `wort.exe`, adds
-new raw files to `data-snapshots`, commits their checksums to `data/SOURCES`,
-and publishes a Windows zip and a Unix tarball from that commit. The snapshot
-dates show on wort's F1 page.
+The `.exe` is cross-built on Linux with OpenWatcom v2 (Arch: AUR package
+`openwatcom-v2`). PDCurses 3.9 is compiled in, so no DLLs are needed.
+
+```
+$ . /opt/watcom/owsetenv.sh
+$ make win32             # writes build/win32/wort.exe
+```
+
+Copy `wort.exe` and the three files from `build/data/` into one folder.
+
+- PDCurses is the narrow (non-Unicode) build, because the Unicode build does
+  not run on Windows 9x.
+- Large local arrays crash wort at start on real Windows (they skip the stack
+  guard page), even though Wine runs them fine. Keep locals under 4 KB and
+  make big buffers `static`.
+- Don't use PDCurses' `Makefile.wcc` on Linux (OpenWatcom writes `.o`, not
+  `.obj`), and don't define `HAVE_NO_INFOEX` (it clashes with OpenWatcom's
+  headers).
+
+### Data
+
+`tools/build-db.py` turns the raw downloads into three text files:
+`wort.dat` (the entries), `wort.idx` (the search index) and `wort-en.idx`
+(English to German). The first line of `wort.dat` records the snapshot
+dates shown on the F1 page. Every snapshot used so far is listed with its
+checksum in `data/SOURCES` and kept in the `data-snapshots` release, so any
+release can be rebuilt even if the upstream files disappear.
+
+`cursetest/` is a small program that checks text output and keys on a new
+system (`make`, with `LIBS=-lcurses` on OpenBSD and `LIBS=-lncurses` on
+macOS).
+
+`docs/make_screenshot.py` regenerates the screenshot above.
+
+### CI and releases
+
+`.github/workflows/build.yml` builds wort on Linux (strict C89, warnings
+are errors), macOS, FreeBSD, OpenBSD and Windows for every pull request and
+every push to `main`.
+
+Releases are started by hand: **Actions → release → Run workflow** on `main`,
+with a version such as `v0.1.0`. The workflow:
+1. fetches fresh data, falling back per source to the newest kept snapshot,
+2. builds the data and `wort.exe`,
+3. stores new raw files in `data-snapshots` and commits their checksums,
+4. publishes the Windows zip and the Unix tarball.
 
 ## License
 
-The code is GPL-3.0-or-later. The dictionary data keeps its own licences:
+The code is GPL-3.0-or-later (see [LICENSE](LICENSE)). The dictionary data
+keeps its own licences:
+
 - German Wiktionary: CC BY-SA 4.0, extracted with
   [wiktextract](https://kaikki.org)
 - [OpenThesaurus](https://www.openthesaurus.de): LGPL 2.1 or CC BY-SA 4.0
