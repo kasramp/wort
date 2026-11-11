@@ -49,6 +49,7 @@ on real hardware, not in emulators:
 | Mac OS X 10.3.9 Panther (PowerPC) | Latin-1 build; F1/F2 don't work in its Terminal, see [Notes](#notes) |
 | Mac OS X 10.5.8 Leopard | F1/F2 don't work in its Terminal |
 | macOS 10.15 Catalina | |
+| macOS 26.7 Thaoe | |
 | FreeBSD 15.1 | |
 | OpenBSD 8 | |
 | Linux (Arch) | |
