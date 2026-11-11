@@ -1,0 +1,55 @@
+# Checks that wort still compiles on every platform family, for each PR and push to main.
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: sudo apt-get update && sudo apt-get install -y libncurses-dev
+      - name: Strict C89, warnings are errors
+        run: make clean && make CFLAGS="-std=c89 -pedantic -Wall -Wextra -Werror -O2"
+      - name: Plain make, as users run it
+        run: make clean && make
+      - run: cd cursetest && make CFLAGS="-std=c89 -pedantic -Wall -Wextra -Werror"
+      - run: python3 -m py_compile tools/build-db.py
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: make clean && make
+
+  freebsd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          run: make clean && make
+
+  openbsd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          run: make clean && make
+
+  windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: open-watcom/setup-watcom@v1
+        with:
+          version: "2.0"
+      - run: make win32
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wort-exe
+          path: build/win32/wort.exe

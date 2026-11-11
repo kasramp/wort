@@ -1,0 +1,69 @@
+.TH WORT 1 "November 2026" "wort 0.1" "User Commands"
+.SH NAME
+wort \- offline German\(enGerman dictionary
+.SH SYNOPSIS
+.B wort
+.br
+.B wort
+.I Wort
+.br
+.B wort \-e
+.I word
+.SH DESCRIPTION
+.B wort
+is an offline German dictionary for the terminal. Its data comes from the
+German Wiktionary and OpenThesaurus: meanings with one example each,
+pronunciation (IPA), hyphenation, synonyms, antonyms and English
+translations.
+.PP
+Without arguments,
+.B wort
+starts a full-screen interface: type to search, the list on the left
+shows matching words and the entry of the highlighted word is shown on
+the right.
+.PP
+With a word, it prints that word's entry and exits.
+Inflected forms lead to their base form (\fIging\fP finds \fIgehen\fP).
+.PP
+Umlauts and \(ss can be typed as ae, oe, ue and ss: \fIhaeuser\fP finds
+\fIH\(:auser\fP. Accents may be left out.
+.SH OPTIONS
+.TP
+.BI \-e " word"
+Search an English word and print the German entries it translates to.
+.SH KEYS
+.TP
+.B Up, Down
+Pick a word from the list.
+.TP
+.B Page Up, Page Down
+Scroll the entry. In the macOS Terminal use Shift+Page Up/Down.
+.TP
+.B F1
+Show or hide the info page (data sources, licences, snapshot dates).
+.TP
+.B F2
+Switch the search between German and English.
+.TP
+.B Backspace
+Delete the last character.
+.TP
+.B Esc
+Quit.
+.SH ENVIRONMENT
+.TP
+.B WORT_DATA
+Directory that holds wort.idx, wort.dat and the optional wort-en.idx.
+.SH FILES
+The data files are looked for in this order: the
+.B WORT_DATA
+directory, the directory of the program itself, then
+.IR PREFIX/share/wort
+(default
+.IR /usr/local/share/wort ).
+.SH EXIT STATUS
+0 when an entry was found, 1 when not, 2 when the data files are missing.
+.SH LICENSE
+The program is GPL-3.0-or-later. The German Wiktionary data is CC BY-SA 4.0
+(extracted with wiktextract, kaikki.org); OpenThesaurus is LGPL 2.1 or
+CC BY-SA 4.0.

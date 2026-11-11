@@ -1,0 +1,68 @@
+wort - test checklists
+======================
+
+Last updated: 2026-11-10 (first draft of wort, data snapshot 2026-11-01)
+
+
+WHAT TO COPY
+------------
+Windows 98 / XP / 11:
+    Copy the folder build/win32/ (wort.exe, wort.idx, wort-en.idx, wort.dat).
+    Run "wort" or "wort Haus" in a Command Prompt.
+
+FreeBSD / OpenBSD / Catalina / Panther:
+    Copy build/wort-unix-test.tar.gz (~33 MB), then:
+        tar xzf wort-unix-test.tar.gz
+        cd unix
+        make clean && make
+        ./wort
+    The Makefile detects the OS by itself (OpenBSD: -lcurses, macOS: -lncurses,
+    Panther/Tiger: Latin-1 build). Panther also needs Terminal set to
+    Western (ISO Latin 1): Window Settings > Display > Character Set Encoding.
+
+The data files are found next to the program; nothing to install.
+
+
+CHECKLIST PER MACHINE
+---------------------
+[ ] 1. "make clean && make" builds with no flags (Unix only)
+[ ] 2. "wort Haus" prints the entry, umlauts look right
+[ ] 3. "wort haeuser" and "wort Strasse" find Häuser / Straße (no-umlaut spelling)
+[ ] 4. "wort Hausx" says "Kein Eintrag" and lists similar words
+[ ] 5. TUI: type "häuser" - umlaut appears in the search box, list shows "Häuser -> Haus"
+       (Windows: check this one first; typing umlauts there is the least tested part)
+[ ] 6. TUI: type "haeuser" - same result as 5
+[ ] 7. TUI: Up/Down move the highlight, the right pane follows
+[ ] 8. TUI: PgUp/PgDn scroll a long entry (e.g. Haus)
+[ ] 9. TUI: F1 shows the info/licence page, F1 again hides it
+[ ] 10. TUI: Backspace deletes, Esc quits and the terminal is clean afterwards
+[ ] 11. Speed: searching feels instant, also on Win98 and Panther
+[ ] 12. "wort -e house" shows "house -> Haus" and the Haus entry
+[ ] 13. TUI: F2 switches the search line to "Englisch", typing "house" lists
+        "house -> Haus"; F2 again goes back to "Deutsch"
+[ ] 14. An entry like "Essen" ends each part of speech with an "Englisch" section
+
+Expected, not a bug: on Windows and Panther, IPA letters show as "?" and
+quotes „“ show as ".
+
+
+RESULTS
+-------
+Machine      | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | Notes
+-------------|---|---|---|---|---|---|---|---|---|----|----|----|----|----|------
+Linux        | ok| ok| ok| ok| ok| ok| ok| ok| ok| ok | ok | ok | ok | ok | Claude (tmux) + user, 2026-11-11
+FreeBSD 15.1 | ok| ok| ok| ok| ok| ok| ok| ok| ok| ok | ok | ok | ok | ok | user, 2026-11-11
+OpenBSD 8    | ok| ok| ok| ok| ok| ok| ok| ok| ok| ok | ok | ok | ok | ok | user, 2026-11-11
+Catalina     | ok| ok| ok| ok| ok| ok| ok| ok| ok| ok | ok | ok | ok | ok | user, 2026-11-11
+Panther      | ok| ok| ok| ok| ok| ok| ok| ok| no| ok | ok | ok | no | ok | user, 2026-11-11; F1/F2 quit wort (Terminal key codes unknown to 10.3), accepted; scroll = fn+Shift+PgUp/PgDn
+Leopard 10.5.8| ok| ok| ok| ok| ok| ok| ok| ok| no| ok | ok | ok | no | ok | user, 2026-11-11; Terminal.app: F1/F2 do not work, rest ok
+Win98        | - | ok| ok| ok| ok| ok| ok| ok| ok| ok | ok | ok | ok | ok | user, 2026-11-11 (USB stick and hard disk; no issues)
+WinXP        | - | ok| ok| ok| ok| ok| ok| ok| ok| ok | ok | ok | ok | ok | user, 2026-11-11 (after stack fix)
+Win11        | - | ok| ok| ok| ok| ok| ok| ok| ok| ok | ok | ok | ok | ok | user, 2026-11-11 (after stack fix)
+
+
+EARLIER: cursetest (done 2026-11-10)
+------------------------------------
+Linux, FreeBSD, OpenBSD, Catalina: UTF-8 ok. Win98/XP/11: DOS code page ok.
+Panther: Latin-1 + Terminal setting ok. BSD/Linux text consoles miss some
+glyphs (accepted).
